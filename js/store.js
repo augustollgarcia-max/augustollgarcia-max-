@@ -223,6 +223,29 @@
     } catch (_) {}
   }
 
+  /* Comprovante fictício (imagem) para demonstrar miniatura + tela cheia */
+  function demoReceipt(titulo, valor, extra) {
+    const svg =
+`<svg xmlns='http://www.w3.org/2000/svg' width='600' height='820' viewBox='0 0 600 820'>
+  <rect width='600' height='820' fill='#F6F3ED'/>
+  <rect x='40' y='40' width='520' height='740' rx='18' fill='#fff' stroke='#E0BE6E' stroke-width='3'/>
+  <text x='300' y='120' text-anchor='middle' font-family='Georgia,serif' font-size='34' fill='#0B1B3B' font-weight='bold'>HAIR Academia</text>
+  <text x='300' y='158' text-anchor='middle' font-family='Arial' font-size='18' fill='#C9A227' letter-spacing='3'>COMPROVANTE</text>
+  <line x1='80' y1='195' x2='520' y2='195' stroke='#E7E9EE' stroke-width='2'/>
+  <text x='80' y='250' font-family='Arial' font-size='20' fill='#5A6577'>Descrição</text>
+  <text x='520' y='250' text-anchor='end' font-family='Arial' font-size='20' fill='#0E1B2E' font-weight='bold'>${titulo}</text>
+  <text x='80' y='300' font-family='Arial' font-size='20' fill='#5A6577'>Forma</text>
+  <text x='520' y='300' text-anchor='end' font-family='Arial' font-size='20' fill='#0E1B2E'>${extra}</text>
+  <line x1='80' y1='340' x2='520' y2='340' stroke='#E7E9EE' stroke-width='2'/>
+  <text x='80' y='420' font-family='Arial' font-size='22' fill='#5A6577'>Valor</text>
+  <text x='520' y='430' text-anchor='end' font-family='Georgia,serif' font-size='48' fill='#0E9152' font-weight='bold'>R$ ${valor}</text>
+  <rect x='80' y='520' width='440' height='150' rx='10' fill='#F6F3ED'/>
+  <text x='300' y='600' text-anchor='middle' font-family='monospace' font-size='60' fill='#0B1B3B' letter-spacing='6'>▮▯▮▮▯▮▯▮▮</text>
+  <text x='300' y='720' text-anchor='middle' font-family='Arial' font-size='16' fill='#8A93A3'>Comprovante de demonstração</text>
+</svg>`;
+    return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
+  }
+
   Store.seedDemo = function () {
     if (localStorage.getItem(LS_SEED) === "1" && demoRead().length) return;
     const now = new Date();
@@ -239,10 +262,12 @@
       criado_por: "demo", demo: true, ...o
     });
     const seed = [
-      mk({ data_movimento: d(0, 9, 15),  tipo: "entrada", conta: "dinheiro_pix", categoria: "matricula",   descricao: "[DEMO] Matrícula do Wesley",         forma_pagamento: "pix",      valor: 600 }),
+      mk({ data_movimento: d(0, 9, 15),  tipo: "entrada", conta: "dinheiro_pix", categoria: "matricula",   descricao: "[DEMO] Matrícula do Wesley",         forma_pagamento: "pix",      valor: 600,
+           comprovante_url: demoReceipt("Matrícula do Wesley", "600,00", "Pix"), comprovante_nome: "comprovante-wesley.svg" }),
       mk({ data_movimento: d(0, 11, 0),  tipo: "entrada", conta: "asaas",        categoria: "mensalidade",  descricao: "[DEMO] Mensalidade turma noite",    forma_pagamento: "cartao",   valor: 350 }),
       mk({ data_movimento: d(1, 14, 30), tipo: "saida",   conta: "dinheiro_pix", categoria: "material",     descricao: "[DEMO] Compra de material",         forma_pagamento: "dinheiro", valor: 180 }),
-      mk({ data_movimento: d(2, 10, 0),  tipo: "entrada", conta: "pagseguro",    categoria: "curso",        descricao: "[DEMO] Workshop de coloração",      forma_pagamento: "cartao",   valor: 890 }),
+      mk({ data_movimento: d(2, 10, 0),  tipo: "entrada", conta: "pagseguro",    categoria: "curso",        descricao: "[DEMO] Workshop de coloração",      forma_pagamento: "cartao",   valor: 890,
+           comprovante_url: demoReceipt("Workshop de coloração", "890,00", "Cartão"), comprovante_nome: "comprovante-workshop.svg" }),
       mk({ data_movimento: d(3, 16, 45), tipo: "saida",   conta: "asaas",        categoria: "equipe",       descricao: "[DEMO] Comissão professora Ana",    forma_pagamento: "transferencia", valor: 420, responsavel: "Financeiro" }),
       mk({ data_movimento: d(5, 9, 0),   tipo: "saida",   conta: "infinity",     categoria: "aluguel",      descricao: "[DEMO] Aluguel do espaço",          forma_pagamento: "boleto",   valor: 2500, responsavel: "Financeiro" }),
       mk({ data_movimento: d(6, 13, 20), tipo: "entrada", conta: "infinity",     categoria: "produto",      descricao: "[DEMO] Venda de kit profissional",  forma_pagamento: "pix",      valor: 260 }),

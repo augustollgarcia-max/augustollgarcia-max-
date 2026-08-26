@@ -125,6 +125,14 @@
     $("#stat-entradas").textContent = HAIR.brl(entradas);
     $("#stat-saidas").textContent   = HAIR.brl(saidas);
 
+    const resultado = entradas - saidas;
+    const pr = $("#period-result");
+    if (pr) {
+      const pos = resultado >= 0;
+      pr.className = "period-result " + (pos ? "pos" : "neg");
+      pr.innerHTML = `<span>${pos ? "📈" : "📉"} Resultado do período</span><strong>${(pos ? "+" : "−") + " " + HAIR.brl(Math.abs(resultado)).replace("R$", "R$")}</strong>`;
+    }
+
     const saldoGeral = HAIR.CONTAS.reduce((s, c) => s + accountBalance(c.id), 0);
     $("#stat-saldo").textContent = HAIR.brl(saldoGeral);
     $(".stat-saldo").classList.toggle("neg", saldoGeral < 0);
@@ -174,45 +182,103 @@
       <div class="es"><div class="es-label">Entradas</div><div class="es-val es-in">${HAIR.brl(entradas)}</div></div>
       <div class="es"><div class="es-label">Saídas</div><div class="es-val es-out">${HAIR.brl(saidas)}</div></div>
       <div class="es"><div class="es-label">Resultado</div><div class="es-val">${HAIR.brl(entradas - saidas)}</div></div>`;
-    renderTxList($("#extrato-tx-list"), list, "Nenhum lançamento encontrado com esses filtros.");
+    renderTxList($("#extrato-tx-list"), list, "Nenhum lançamento encontrado com esses filtros.", true);
   }
 
   /* ===================== LISTA DE TRANSAÇÕES ===================== */
-  function renderTxList(ul, list, emptyMsg) {
+  function buildTxItem(l, idx) {
+    const li = document.createElement("li");
+    const item = document.createElement("div");
+    item.className = "tx-item " + (l.tipo === "entrada" ? "entrada-row" : "saida-row");
+    item.style.animationDelay = Math.min(idx * 40, 400) + "ms";
+
+    const hasImg = l.comprovante_url && !Store.receiptIsPdf(l);
+    const hasPdf = l.comprovante_url && Store.receiptIsPdf(l);
+    const catCor = HAIR.catCor(l.categoria);
+    // Avatar: miniatura do comprovante (se imagem) OU ícone da categoria colorido
+    let thumbInner, thumbClass = "tx-thumb";
+    if (hasImg && Store.isDemo()) { thumbInner = `<img src="${l.comprovante_url}" alt="Comprovante">`; thumbClass += " has-receipt"; }
+    else if (hasImg) { thumbInner = `<span class="tx-ph">📷</span>`; thumbClass += " has-receipt"; }
+    else if (hasPdf) { thumbInner = `<span class="tx-ph">📄</span>`; thumbClass += " has-receipt"; }
+    else { thumbInner = `<span class="tx-cat" style="background:${catCor}1f;color:${catCor}">${HAIR.catIcone(l.categoria)}</span>`; }
+
+    const sinal = l.tipo === "entrada" ? "+" : "−";
+    const demo = l.demo ? `<span class="demo-tag">DEMO</span>` : "";
+    const clip = l.comprovante_url
+      ? `<button class="tx-clip has" type="button" title="Ver comprovante">📎 ver</button>`
+      : `<span class="tx-clip none">sem comprovante</span>`;
+
+    item.innerHTML = `
+      <button class="tx-thumb-btn ${thumbClass}" type="button" aria-label="Ver comprovante">${thumbInner}</button>
+      <button class="tx-main" type="button">
+        <div class="tx-desc">${escapeHtml(l.descricao || "Lançamento")}${demo}</div>
+        <div class="tx-meta"><span class="tx-cat-dot" style="background:${catCor}"></span>${HAIR.catNome(l.categoria)} · ${HAIR.contaNome(l.conta)} · ${HAIR.fmtData(l.data_movimento)}</div>
+      </button>
+      <div class="tx-right">
+        <div class="tx-value ${l.tipo}">${sinal} ${HAIR.brl(l.valor).replace("R$", "").trim()}</div>
+        ${clip}
+      </div>`;
+
+    item.querySelector(".tx-main").addEventListener("click", () => openDetalhe(l));
+    const thumbBtn = item.querySelector(".tx-thumb-btn");
+    const clipBtn = item.querySelector(".tx-clip.has");
+    const openReceiptOrDetail = (e) => {
+      e.stopPropagation();
+      if (l.comprovante_url) openReceipt(l); else openDetalhe(l);
+    };
+    thumbBtn.addEventListener("click", openReceiptOrDetail);
+    if (clipBtn) clipBtn.addEventListener("click", (e) => { e.stopPropagation(); openReceipt(l); });
+
+    // miniatura assinada (supabase) de forma assíncrona
+    if (hasImg && !Store.isDemo()) {
+      Store.receiptUrl(l).then(url => { if (url) thumbBtn.innerHTML = `<img src="${url}" alt="Comprovante">`; });
+    }
+    li.appendChild(item);
+    return li;
+  }
+
+  function renderTxList(ul, list, emptyMsg, group) {
     ul.innerHTML = "";
-    if (!list.length) { ul.innerHTML = `<li class="empty">${emptyMsg}</li>`; return; }
+    if (!list.length) {
+      ul.innerHTML = `<li class="empty"><div class="empty-ico">🧾</div>${emptyMsg}</li>`;
+      return;
+    }
+    if (!group) {
+      list.forEach((l, i) => ul.appendChild(buildTxItem(l, i)));
+      return;
+    }
+    // agrupado por dia
+    let lastKey = null, idx = 0;
     list.forEach(l => {
-      const li = document.createElement("li");
-      const item = document.createElement("button");
-      item.className = "tx-item";
-      const hasImg = l.comprovante_url && !Store.receiptIsPdf(l);
-      const thumb = hasImg && Store.isDemo()
-        ? `<span class="tx-thumb"><img src="${l.comprovante_url}" alt=""></span>`
-        : l.comprovante_url
-          ? `<span class="tx-thumb ${l.tipo}">📎</span>`
-          : `<span class="tx-thumb ${l.tipo}">${l.tipo === "entrada" ? "↗" : "↘"}</span>`;
-      const sinal = l.tipo === "entrada" ? "+" : "−";
-      const demo = l.demo ? `<span class="demo-tag">DEMO</span>` : "";
-      item.innerHTML = `
-        ${thumb}
-        <div class="tx-main">
-          <div class="tx-desc">${escapeHtml(l.descricao || "Lançamento")}${demo}</div>
-          <div class="tx-meta">${HAIR.contaNome(l.conta)} · ${HAIR.catNome(l.categoria)} · ${HAIR.fmtData(l.data_movimento)}</div>
-        </div>
-        <div class="tx-right">
-          <div class="tx-value ${l.tipo}">${sinal} ${HAIR.brl(l.valor).replace("R$", "").trim()}</div>
-          ${l.comprovante_url ? '<div class="tx-clip">📎 comprovante</div>' : ''}
-        </div>`;
-      item.addEventListener("click", () => openDetalhe(l));
-      // carrega miniatura assinada (supabase) de forma assíncrona
-      if (hasImg && !Store.isDemo()) {
-        Store.receiptUrl(l).then(url => {
-          if (url) item.querySelector(".tx-thumb").innerHTML = `<img src="${url}" alt="">`;
-        });
+      const key = HAIR.fmtData(l.data_movimento);
+      if (key !== lastKey) {
+        lastKey = key;
+        const head = document.createElement("li");
+        head.className = "tx-day";
+        const dayIn = soma(list.filter(x => HAIR.fmtData(x.data_movimento) === key && x.tipo === "entrada"));
+        const dayOut = soma(list.filter(x => HAIR.fmtData(x.data_movimento) === key && x.tipo === "saida"));
+        head.innerHTML = `<span>${diaRotulo(l.data_movimento)}</span>
+          <span class="tx-day-net">${HAIR.brl(dayIn - dayOut)}</span>`;
+        ul.appendChild(head);
       }
-      li.appendChild(item);
-      ul.appendChild(li);
+      ul.appendChild(buildTxItem(l, idx++));
     });
+  }
+
+  function diaRotulo(iso) {
+    const d = new Date(iso); const hoje = new Date(); const ont = new Date(); ont.setDate(hoje.getDate() - 1);
+    const same = (a, b) => a.toDateString() === b.toDateString();
+    if (same(d, hoje)) return "Hoje";
+    if (same(d, ont)) return "Ontem";
+    return d.toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "short" });
+  }
+
+  /* Abre o comprovante em tela cheia com um toque */
+  async function openReceipt(l) {
+    if (!l.comprovante_url) return;
+    const url = await Store.receiptUrl(l);
+    if (!url) { toast("Comprovante indisponível.", "err"); return; }
+    openViewer(url, Store.receiptIsPdf(l));
   }
 
   /* ===================== DETALHE ===================== */
@@ -228,7 +294,7 @@
       <div class="det-rows">
         <div class="det-row"><span class="dk">Descrição</span><span class="dv">${escapeHtml(l.descricao || "—")}</span></div>
         <div class="det-row"><span class="dk">Conta</span><span class="dv">${HAIR.contaNome(l.conta)}</span></div>
-        <div class="det-row"><span class="dk">Categoria</span><span class="dv">${HAIR.catNome(l.categoria)}</span></div>
+        <div class="det-row"><span class="dk">Categoria</span><span class="dv"><span class="cat-pill" style="background:${HAIR.catCor(l.categoria)}1f;color:${HAIR.catCor(l.categoria)}">${HAIR.catIcone(l.categoria)} ${HAIR.catNome(l.categoria)}</span></span></div>
         <div class="det-row"><span class="dk">Forma de pagamento</span><span class="dv">${HAIR.formaNome(l.forma_pagamento)}</span></div>
         <div class="det-row"><span class="dk">Data e hora</span><span class="dv">${HAIR.fmtDataHora(l.data_movimento)}</span></div>
         <div class="det-row"><span class="dk">Responsável</span><span class="dv">${escapeHtml(l.responsavel || "—")}</span></div>
@@ -250,9 +316,12 @@
         cEl.innerHTML = `<button class="pdf-open btn btn-ghost btn-block">📄 Abrir comprovante (PDF)</button>`;
         cEl.querySelector("button").onclick = () => openViewer(url, true);
       } else if (url) {
-        cEl.innerHTML = `<img src="${url}" alt="Comprovante">`;
+        cEl.innerHTML = `<div class="det-comp-label">📎 Comprovante — toque para ampliar</div><img src="${url}" alt="Comprovante">`;
         cEl.querySelector("img").onclick = () => openViewer(url, false);
       }
+    } else {
+      cEl.innerHTML = `<button class="btn btn-ghost btn-block det-add-comp">📷 Adicionar comprovante</button>`;
+      cEl.querySelector("button").onclick = () => { closeModal("#modal-detalhe"); editLancamento(l); };
     }
     // histórico
     Store.listHistorico(l.id).then(hist => {

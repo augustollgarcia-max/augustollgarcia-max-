@@ -19,17 +19,17 @@ HAIR.CONTAS = [
 ];
 
 HAIR.CATEGORIAS = [
-  { id: "matricula",   nome: "Matrícula" },
-  { id: "mensalidade", nome: "Mensalidade" },
-  { id: "curso",       nome: "Curso / Workshop" },
-  { id: "produto",     nome: "Produto" },
-  { id: "servico",     nome: "Serviço" },
-  { id: "comissao",    nome: "Comissão" },
-  { id: "aluguel",     nome: "Aluguel" },
-  { id: "equipe",      nome: "Equipe / Professor" },
-  { id: "material",    nome: "Material" },
-  { id: "marketing",   nome: "Marketing" },
-  { id: "outros",      nome: "Outros" }
+  { id: "matricula",   nome: "Matrícula",           icone: "🎓", cor: "#6C5CE7" },
+  { id: "mensalidade", nome: "Mensalidade",         icone: "🗓️", cor: "#0984E3" },
+  { id: "curso",       nome: "Curso / Workshop",    icone: "💈", cor: "#00B894" },
+  { id: "produto",     nome: "Produto",             icone: "🛍️", cor: "#E17055" },
+  { id: "servico",     nome: "Serviço",             icone: "✂️", cor: "#E84393" },
+  { id: "comissao",    nome: "Comissão",            icone: "🤝", cor: "#B8860B" },
+  { id: "aluguel",     nome: "Aluguel",             icone: "🏠", cor: "#636E72" },
+  { id: "equipe",      nome: "Equipe / Professor",  icone: "👩‍🏫", cor: "#0097A7" },
+  { id: "material",    nome: "Material",            icone: "📦", cor: "#8E7CC3" },
+  { id: "marketing",   nome: "Marketing",           icone: "📣", cor: "#E84118" },
+  { id: "outros",      nome: "Outros",              icone: "🔖", cor: "#7A8794" }
 ];
 
 HAIR.FORMAS = [
@@ -45,6 +45,8 @@ HAIR.FORMAS = [
 HAIR.contaNome = (id) => (HAIR.CONTAS.find(c => c.id === id) || {}).nome || id || "—";
 HAIR.contaCor  = (id) => (HAIR.CONTAS.find(c => c.id === id) || {}).cor  || "#C9A227";
 HAIR.catNome   = (id) => (HAIR.CATEGORIAS.find(c => c.id === id) || {}).nome || id || "—";
+HAIR.catIcone  = (id) => (HAIR.CATEGORIAS.find(c => c.id === id) || {}).icone || "🔖";
+HAIR.catCor    = (id) => (HAIR.CATEGORIAS.find(c => c.id === id) || {}).cor || "#7A8794";
 HAIR.formaNome = (id) => (HAIR.FORMAS.find(c => c.id === id) || {}).nome || id || "—";
 
 /* Formatação BRL e datas ------------------------------------------------- */

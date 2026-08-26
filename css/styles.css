@@ -325,3 +325,74 @@ input,select,textarea{font-family:inherit;font-size:16px;}
 }
 .toast.ok{background:var(--green-deep);}
 .toast.err{background:var(--red-deep);}
+
+/* ===========================================================
+   POLIMENTO VISUAL / INTERAÇÃO
+   =========================================================== */
+/* Resultado do período */
+.period-result{
+  display:flex;align-items:center;justify-content:space-between;
+  margin:-12px 0 6px;padding:11px 16px;border-radius:14px;font-size:14px;font-weight:600;
+  box-shadow:var(--shadow);
+}
+.period-result strong{font-size:16px;font-variant-numeric:tabular-nums;}
+.period-result.pos{background:rgba(18,183,106,.12);color:var(--green-deep);}
+.period-result.neg{background:rgba(240,68,56,.12);color:var(--red-deep);}
+
+/* Cartões de estatística: entrada suave + toque */
+.stat-card{animation:cardIn .45s cubic-bezier(.2,.7,.3,1) both;transition:transform .12s;}
+.stat-card:active{transform:scale(.985);}
+.stat-entrada{animation-delay:.02s;} .stat-saida{animation-delay:.08s;} .stat-saldo{animation-delay:.14s;}
+@keyframes cardIn{from{opacity:0;transform:translateY(14px) scale(.98);}to{opacity:1;transform:none;}}
+.stat-card .stat-ico{position:absolute;right:16px;bottom:12px;font-size:26px;opacity:.28;}
+
+.account-card{transition:transform .12s;animation:cardIn .4s both;}
+.account-card:active{transform:scale(.97);}
+
+/* Lista de transações — nova estrutura em botões */
+.tx-item{
+  display:flex;align-items:center;gap:12px;background:var(--surface);
+  border-radius:var(--radius-sm);padding:10px 12px;box-shadow:var(--shadow);
+  text-align:left;width:100%;animation:rowIn .35s ease both;position:relative;overflow:hidden;
+}
+.tx-item::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--tx-accent,transparent);}
+.tx-item.entrada-row::before{background:var(--green);} .tx-item.saida-row::before{background:var(--red);}
+@keyframes rowIn{from{opacity:0;transform:translateX(-8px);}to{opacity:1;transform:none;}}
+.tx-thumb-btn{
+  width:48px;height:48px;flex:0 0 48px;border-radius:12px;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;background:var(--surface-2);transition:transform .1s;
+}
+.tx-thumb-btn:active{transform:scale(.92);}
+.tx-thumb-btn img{width:100%;height:100%;object-fit:cover;}
+.tx-thumb-btn.has-receipt{box-shadow:0 0 0 2px var(--gold-2) inset;}
+.tx-cat{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:22px;border-radius:12px;}
+.tx-ph{font-size:22px;}
+.tx-main{flex:1;min-width:0;background:none;text-align:left;padding:2px 0;}
+.tx-desc{font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text);}
+.tx-meta{font-size:12px;color:var(--text-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:5px;}
+.tx-cat-dot{width:7px;height:7px;border-radius:50%;flex:0 0 7px;}
+.tx-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex:0 0 auto;}
+.tx-clip{font-size:11px;font-weight:700;border-radius:999px;padding:3px 9px;}
+.tx-clip.has{background:rgba(201,162,39,.16);color:#8a6d0e;}
+.tx-clip.has:active{transform:scale(.94);}
+.tx-clip.none{color:var(--text-faint);font-weight:500;background:transparent;padding:3px 0;}
+
+/* Cabeçalho de dia no extrato */
+.tx-day{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 4px 4px;font-size:13px;font-weight:800;color:var(--navy-800);
+  text-transform:capitalize;
+}
+.tx-day-net{font-size:12px;font-weight:700;color:var(--text-soft);font-variant-numeric:tabular-nums;}
+
+.empty-ico{font-size:38px;margin-bottom:8px;opacity:.5;}
+
+/* Pílula de categoria (detalhe) */
+.cat-pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-weight:700;font-size:13px;}
+.det-comp-label{font-size:12px;color:var(--text-soft);margin-bottom:8px;font-weight:600;}
+.det-add-comp{border-style:dashed !important;border-color:var(--gold-2) !important;}
+
+/* Botões: leve brilho ao pressionar */
+.chip:active{transform:scale(.95);}
+.nav-item:active{transform:scale(.9);}
+.icon-btn:active{transform:scale(.92);}
