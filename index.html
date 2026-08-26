@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0B1B3B" />
+  <meta name="description" content="Controle financeiro da HAIR Academia da Beleza — entradas e saídas por conta, simples e seguro." />
+  <title>HAIR Financeiro</title>
+
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" type="image/svg+xml" href="./icons/icon.svg" />
+  <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="HAIR Financeiro" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./css/styles.css" />
+</head>
+<body>
+  <!-- ============ TELA DE LOGIN ============ -->
+  <section id="view-login" class="view view-auth" hidden>
+    <div class="auth-card">
+      <div class="brand">
+        <div class="brand-mark">HAIR</div>
+        <div class="brand-sub">Academia da Beleza</div>
+      </div>
+      <h1 class="auth-title">Financeiro</h1>
+      <p class="auth-lead">Controle simples e seguro das entradas e saídas.</p>
+
+      <form id="login-form" class="auth-form" novalidate>
+        <label class="field">
+          <span>E-mail</span>
+          <input type="email" id="login-email" autocomplete="username" inputmode="email" placeholder="voce@email.com" required />
+        </label>
+        <label class="field">
+          <span>Senha</span>
+          <input type="password" id="login-password" autocomplete="current-password" placeholder="••••••••" required />
+        </label>
+        <p id="login-error" class="form-error" hidden></p>
+        <button type="submit" class="btn btn-primary btn-block" id="login-submit">Entrar</button>
+      </form>
+
+      <button type="button" class="btn btn-ghost btn-block" id="btn-demo">
+        Entrar no modo demonstração
+      </button>
+      <p class="auth-note">O modo demonstração usa dados de exemplo salvos apenas neste aparelho.</p>
+    </div>
+  </section>
+
+  <!-- ============ APP (área logada) ============ -->
+  <div id="app-shell" hidden>
+    <div id="demo-banner" class="demo-banner" hidden>
+      <strong>Modo demonstração</strong> — dados de exemplo neste aparelho.
+      <button type="button" id="demo-config" class="banner-link">Conectar Supabase</button>
+    </div>
+
+    <!-- ---------- PAINEL ---------- -->
+    <section id="view-painel" class="view screen" hidden>
+      <header class="app-header">
+        <div>
+          <p class="hello" id="hello-user">Olá 👋</p>
+          <h1 class="screen-title">Painel</h1>
+        </div>
+        <button type="button" class="icon-btn" id="btn-logout" title="Sair" aria-label="Sair">⎋</button>
+      </header>
+
+      <div class="period-tabs" id="period-tabs" role="tablist">
+        <button class="chip is-active" data-period="hoje">Hoje</button>
+        <button class="chip" data-period="semana">Semana</button>
+        <button class="chip" data-period="mes">Mês</button>
+        <button class="chip" data-period="custom">Período</button>
+      </div>
+      <div id="custom-range" class="custom-range" hidden>
+        <label class="field field-inline"><span>De</span><input type="date" id="range-start" /></label>
+        <label class="field field-inline"><span>Até</span><input type="date" id="range-end" /></label>
+      </div>
+
+      <div class="cards-stack">
+        <div class="stat-card stat-entrada">
+          <span class="stat-label">Entradas do período</span>
+          <span class="stat-value" id="stat-entradas">R$ 0,00</span>
+        </div>
+        <div class="stat-card stat-saida">
+          <span class="stat-label">Saídas do período</span>
+          <span class="stat-value" id="stat-saidas">R$ 0,00</span>
+        </div>
+        <div class="stat-card stat-saldo">
+          <span class="stat-label">Saldo geral</span>
+          <span class="stat-value" id="stat-saldo">R$ 0,00</span>
+        </div>
+      </div>
+
+      <h2 class="section-title">Saldo por conta</h2>
+      <div class="accounts-grid" id="accounts-grid"></div>
+
+      <div class="section-head">
+        <h2 class="section-title">Últimas movimentações</h2>
+        <button class="link-btn" data-nav="extrato">Ver extrato</button>
+      </div>
+      <ul class="tx-list" id="painel-tx-list"></ul>
+    </section>
+
+    <!-- ---------- NOVO LANÇAMENTO ---------- -->
+    <section id="view-novo" class="view screen" hidden>
+      <header class="app-header">
+        <button type="button" class="icon-btn" data-nav="painel" aria-label="Voltar">‹</button>
+        <h1 class="screen-title" id="novo-title">Novo lançamento</h1>
+        <span style="width:44px"></span>
+      </header>
+
+      <div class="voice-box">
+        <button type="button" id="btn-voice" class="btn-voice" aria-label="Ditar lançamento por voz">
+          <span class="mic-icon">🎤</span>
+        </button>
+        <div class="voice-text">
+          <strong>Falar lançamento</strong>
+          <span id="voice-hint">Ex.: “Entrou 600 reais da matrícula do Wesley no Pix”.</span>
+        </div>
+      </div>
+      <div id="voice-status" class="voice-status" hidden></div>
+
+      <form id="lancamento-form" class="lanc-form" novalidate>
+        <input type="hidden" id="f-id" />
+
+        <div class="type-toggle" role="tablist" aria-label="Tipo">
+          <button type="button" class="type-opt is-active" data-tipo="entrada" id="tipo-entrada">Entrada</button>
+          <button type="button" class="type-opt" data-tipo="saida" id="tipo-saida">Saída</button>
+        </div>
+        <input type="hidden" id="f-tipo" value="entrada" />
+
+        <label class="field">
+          <span>Valor (R$)</span>
+          <input type="text" id="f-valor" inputmode="decimal" placeholder="0,00" required />
+        </label>
+
+        <label class="field">
+          <span>Data e hora</span>
+          <input type="datetime-local" id="f-data" required />
+        </label>
+
+        <label class="field">
+          <span>Conta</span>
+          <select id="f-conta" required></select>
+        </label>
+
+        <label class="field">
+          <span>Categoria</span>
+          <select id="f-categoria" required></select>
+        </label>
+
+        <label class="field">
+          <span>Nome / descrição</span>
+          <input type="text" id="f-descricao" placeholder="Ex.: Matrícula do Wesley" required />
+        </label>
+
+        <label class="field">
+          <span>Forma de pagamento</span>
+          <select id="f-forma"></select>
+        </label>
+
+        <label class="field">
+          <span>Responsável pelo lançamento</span>
+          <input type="text" id="f-responsavel" placeholder="Quem registrou" />
+        </label>
+
+        <label class="field">
+          <span>Observação</span>
+          <textarea id="f-observacao" rows="2" placeholder="Opcional"></textarea>
+        </label>
+
+        <div class="field">
+          <span>Comprovante</span>
+          <div class="upload-row">
+            <label class="upload-btn">
+              📷 Câmera
+              <input type="file" id="f-file-cam" accept="image/*" capture="environment" hidden />
+            </label>
+            <label class="upload-btn">
+              🖼️ Galeria / PDF
+              <input type="file" id="f-file-lib" accept="image/*,application/pdf" hidden />
+            </label>
+          </div>
+          <div id="comprovante-preview" class="comprovante-preview" hidden></div>
+        </div>
+
+        <p id="lanc-error" class="form-error" hidden></p>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary btn-block" id="lanc-submit">Salvar lançamento</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- ---------- EXTRATO ---------- -->
+    <section id="view-extrato" class="view screen" hidden>
+      <header class="app-header">
+        <button type="button" class="icon-btn" data-nav="painel" aria-label="Voltar">‹</button>
+        <h1 class="screen-title">Extrato</h1>
+        <button type="button" class="icon-btn" id="btn-toggle-filters" aria-label="Filtros">⚙</button>
+      </header>
+
+      <div id="extrato-filters" class="extrato-filters" hidden>
+        <label class="field field-sm"><span>Conta</span><select id="filt-conta"></select></label>
+        <label class="field field-sm"><span>Tipo</span><select id="filt-tipo"></select></label>
+        <label class="field field-sm"><span>Categoria</span><select id="filt-categoria"></select></label>
+        <label class="field field-sm"><span>Responsável</span><select id="filt-responsavel"></select></label>
+        <label class="field field-sm"><span>De</span><input type="date" id="filt-start" /></label>
+        <label class="field field-sm"><span>Até</span><input type="date" id="filt-end" /></label>
+        <button type="button" class="btn btn-ghost btn-block" id="filt-clear">Limpar filtros</button>
+      </div>
+
+      <div class="extrato-summary" id="extrato-summary"></div>
+      <ul class="tx-list" id="extrato-tx-list"></ul>
+    </section>
+
+    <!-- ---------- BOTÃO FLUTUANTE ---------- -->
+    <button type="button" class="fab" id="fab-novo" aria-label="Novo lançamento">
+      <span>＋</span> Novo lançamento
+    </button>
+
+    <!-- ---------- NAV INFERIOR ---------- -->
+    <nav class="bottom-nav">
+      <button class="nav-item is-active" data-nav="painel"><span>🏠</span>Painel</button>
+      <button class="nav-item" data-nav="extrato"><span>📄</span>Extrato</button>
+    </nav>
+  </div>
+
+  <!-- ============ MODAIS ============ -->
+  <!-- Detalhe do lançamento -->
+  <div id="modal-detalhe" class="modal" hidden>
+    <div class="modal-sheet">
+      <div class="modal-grabber"></div>
+      <div id="detalhe-body"></div>
+    </div>
+  </div>
+
+  <!-- Confirmação de voz -->
+  <div id="modal-voz" class="modal" hidden>
+    <div class="modal-sheet">
+      <div class="modal-grabber"></div>
+      <h2 class="modal-title">Confirmar lançamento por voz</h2>
+      <p class="modal-lead" id="voz-transcript"></p>
+      <div id="voz-fields" class="voz-fields"></div>
+      <p class="modal-note">Revise os campos. Nada é salvo sem a sua confirmação.</p>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="voz-cancelar">Cancelar</button>
+        <button class="btn btn-primary" id="voz-usar">Revisar e preencher</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Visualizador de comprovante em tela cheia -->
+  <div id="viewer" class="viewer" hidden>
+    <button type="button" class="viewer-close" id="viewer-close" aria-label="Fechar">✕</button>
+    <div id="viewer-content" class="viewer-content"></div>
+  </div>
+
+  <!-- Configuração do Supabase -->
+  <div id="modal-config" class="modal" hidden>
+    <div class="modal-sheet">
+      <div class="modal-grabber"></div>
+      <h2 class="modal-title">Conectar Supabase</h2>
+      <p class="modal-lead">Cole a URL e a chave pública (anon) do seu projeto. Ficam salvas apenas neste aparelho.</p>
+      <label class="field"><span>Project URL</span><input type="url" id="cfg-url" placeholder="https://xxxx.supabase.co" /></label>
+      <label class="field"><span>Anon key</span><input type="text" id="cfg-key" placeholder="eyJhbGci..." /></label>
+      <p id="cfg-error" class="form-error" hidden></p>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="cfg-cancelar">Cancelar</button>
+        <button class="btn btn-primary" id="cfg-salvar">Salvar e conectar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast" hidden></div>
+
+  <!-- Confirmação genérica -->
+  <div id="modal-confirm" class="modal" hidden>
+    <div class="modal-sheet modal-sheet-center">
+      <h2 class="modal-title" id="confirm-title">Confirmar</h2>
+      <p class="modal-lead" id="confirm-msg"></p>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="confirm-no">Cancelar</button>
+        <button class="btn btn-danger" id="confirm-yes">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="./js/config.js"></script>
+  <script src="./js/store.js"></script>
+  <script src="./js/voice.js"></script>
+  <script src="./js/app.js"></script>
+</body>
+</html>
