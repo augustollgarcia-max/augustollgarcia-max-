@@ -67,6 +67,23 @@ HAIR.fmtDataHora = (iso) => {
     d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
 };
 
+/* Formata número -> "1.234,56" (para preencher o campo de valor) */
+HAIR.formatValorInput = (n) => {
+  const v = Number(n) || 0;
+  return v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
+
+/* Máscara de centavos: dígitos digitados preenchem da direita p/ esquerda */
+HAIR.maskCentavos = (str) => {
+  let d = String(str || "").replace(/\D/g, "");
+  if (!d) return "";
+  d = String(parseInt(d, 10));
+  while (d.length < 3) d = "0" + d;
+  const cents = d.slice(-2);
+  let reais = d.slice(0, -2).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  return reais + "," + cents;
+};
+
 /* Converte "1.234,56" ou "1234.56" -> Number */
 HAIR.parseValor = (str) => {
   if (typeof str === "number") return str;

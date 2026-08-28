@@ -396,3 +396,41 @@ input,select,textarea{font-family:inherit;font-size:16px;}
 .chip:active{transform:scale(.95);}
 .nav-item:active{transform:scale(.9);}
 .icon-btn:active{transform:scale(.92);}
+
+/* Ações no cabeçalho */
+.header-actions{display:flex;gap:8px;}
+
+/* Banner offline */
+.offline-banner{
+  background:#3a2d05;color:#FFE8A3;font-size:13px;text-align:center;padding:8px 14px;
+  padding-top:calc(8px + var(--safe-top));font-weight:600;
+}
+
+/* Card de conta: link para o extrato */
+.account-card{text-align:left;position:relative;}
+.account-go{font-size:11px;color:var(--text-faint);margin-top:6px;font-weight:600;}
+
+/* Barra de busca */
+.search-bar{
+  display:flex;align-items:center;gap:10px;background:var(--surface);
+  border-radius:14px;padding:0 14px;box-shadow:var(--shadow);margin-bottom:12px;
+  border:1.5px solid transparent;transition:border-color .15s;
+}
+.search-bar:focus-within{border-color:var(--gold);}
+.search-ico{font-size:16px;opacity:.7;}
+.search-bar input{flex:1;border:none;background:none;padding:13px 0;font-size:15px;outline:none;color:var(--text);}
+
+/* Resumo por categoria (barras) */
+.cat-breakdown{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:14px;overflow:hidden;}
+.cat-breakdown summary{padding:14px 16px;font-weight:700;font-size:14px;cursor:pointer;color:var(--navy-800);list-style:none;display:flex;align-items:center;justify-content:space-between;}
+.cat-breakdown summary::after{content:"⌄";font-size:18px;color:var(--text-faint);transition:transform .2s;}
+.cat-breakdown[open] summary::after{transform:rotate(180deg);}
+.cat-breakdown summary::-webkit-details-marker{display:none;}
+#cat-breakdown-body{padding:4px 16px 16px;display:flex;flex-direction:column;gap:12px;}
+.cb-row{display:flex;flex-direction:column;gap:6px;}
+.cb-top{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:13px;}
+.cb-name{font-weight:600;color:var(--text);}
+.cb-val{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;font-size:12px;}
+.cb-in{color:var(--green-deep);} .cb-out{color:var(--red-deep);}
+.cb-track{height:8px;border-radius:6px;background:var(--surface-2);overflow:hidden;}
+.cb-fill{height:100%;border-radius:6px;transition:width .5s cubic-bezier(.2,.7,.3,1);min-width:6px;}

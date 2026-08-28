@@ -9,7 +9,7 @@
     lancamentos: [],
     period: "hoje",
     range: { start: null, end: null },
-    filters: { conta: "", tipo: "", categoria: "", responsavel: "", start: "", end: "" },
+    filters: { conta: "", tipo: "", categoria: "", responsavel: "", start: "", end: "", q: "" },
     receiptFile: null,     // File a enviar
     editingKeepReceipt: true,
     voiceParsed: null
@@ -27,6 +27,38 @@
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("./sw.js").catch(() => {});
     }
+    setupInstall();
+    setupOffline();
+  }
+
+  /* Instalação do PWA */
+  let deferredPrompt = null;
+  function setupInstall() {
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      const b = $("#btn-install"); if (b) b.hidden = false;
+    });
+    window.addEventListener("appinstalled", () => {
+      deferredPrompt = null;
+      const b = $("#btn-install"); if (b) b.hidden = true;
+      toast("App instalado! 🎉", "ok");
+    });
+    const btn = $("#btn-install");
+    if (btn) btn.addEventListener("click", async () => {
+      if (!deferredPrompt) { toast("Use o menu do navegador ▸ “Instalar app”.", ""); return; }
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      deferredPrompt = null; btn.hidden = true;
+    });
+  }
+
+  /* Indicador offline */
+  function setupOffline() {
+    const upd = () => { const b = $("#offline-banner"); if (b) b.hidden = navigator.onLine; };
+    window.addEventListener("online", upd);
+    window.addEventListener("offline", upd);
+    upd();
   }
 
   function showLogin() {
@@ -139,13 +171,21 @@
 
     // contas
     const grid = $("#accounts-grid"); grid.innerHTML = "";
-    HAIR.CONTAS.forEach(c => {
+    HAIR.CONTAS.forEach((c, i) => {
       const bal = accountBalance(c.id);
-      const el = document.createElement("div");
+      const el = document.createElement("button");
       el.className = "account-card";
+      el.type = "button";
       el.style.setProperty("--acc", c.cor);
+      el.style.animationDelay = (i * 50) + "ms";
       el.innerHTML = `<div class="account-name">${c.nome}</div>
-        <div class="account-bal${bal < 0 ? " neg" : ""}">${HAIR.brl(bal)}</div>`;
+        <div class="account-bal${bal < 0 ? " neg" : ""}">${HAIR.brl(bal)}</div>
+        <div class="account-go">Ver extrato ›</div>`;
+      el.addEventListener("click", () => {
+        state.filters = { conta: c.id, tipo: "", categoria: "", responsavel: "", start: "", end: "", q: "" };
+        syncFilterInputs();
+        navTo("extrato");
+      });
       grid.appendChild(el);
     });
 
@@ -164,9 +204,21 @@
       if (f.responsavel && (l.responsavel || "") !== f.responsavel) return false;
       if (f.start && new Date(l.data_movimento) < new Date(f.start + "T00:00:00")) return false;
       if (f.end && new Date(l.data_movimento) > new Date(f.end + "T23:59:59")) return false;
+      if (f.q) {
+        const hay = ((l.descricao || "") + " " + (l.responsavel || "") + " " + HAIR.catNome(l.categoria)).toLowerCase();
+        if (!hay.includes(f.q.toLowerCase())) return false;
+      }
       return true;
     });
   }
+  function syncFilterInputs() {
+    const f = state.filters;
+    const set = (sel, val) => { const el = $(sel); if (el) el.value = val || ""; };
+    set("#filt-conta", f.conta); set("#filt-tipo", f.tipo); set("#filt-categoria", f.categoria);
+    set("#filt-responsavel", f.responsavel); set("#filt-start", f.start); set("#filt-end", f.end);
+    set("#extrato-search", f.q);
+  }
+
   function renderExtrato() {
     // responsáveis dinâmicos
     const resps = [...new Set(state.lancamentos.map(l => l.responsavel).filter(Boolean))]
@@ -182,7 +234,40 @@
       <div class="es"><div class="es-label">Entradas</div><div class="es-val es-in">${HAIR.brl(entradas)}</div></div>
       <div class="es"><div class="es-label">Saídas</div><div class="es-val es-out">${HAIR.brl(saidas)}</div></div>
       <div class="es"><div class="es-label">Resultado</div><div class="es-val">${HAIR.brl(entradas - saidas)}</div></div>`;
+    renderCatBreakdown(list);
     renderTxList($("#extrato-tx-list"), list, "Nenhum lançamento encontrado com esses filtros.", true);
+  }
+
+  function renderCatBreakdown(list) {
+    const box = $("#cat-breakdown-body");
+    const det = $("#cat-breakdown");
+    if (!box) return;
+    if (!list.length) { det.hidden = true; return; }
+    det.hidden = false;
+    // agrupa por categoria (valor absoluto movimentado)
+    const map = {};
+    list.forEach(l => {
+      const k = l.categoria || "outros";
+      if (!map[k]) map[k] = { in: 0, out: 0 };
+      if (l.tipo === "entrada") map[k].in += Number(l.valor) || 0;
+      else map[k].out += Number(l.valor) || 0;
+    });
+    const rows = Object.entries(map)
+      .map(([k, v]) => ({ id: k, total: v.in + v.out, in: v.in, out: v.out }))
+      .sort((a, b) => b.total - a.total);
+    const max = Math.max(...rows.map(r => r.total), 1);
+    box.innerHTML = rows.map(r => {
+      const cor = HAIR.catCor(r.id);
+      const pct = Math.round((r.total / max) * 100);
+      const detalhe = r.in && r.out
+        ? `<span class="cb-in">+${HAIR.brl(r.in)}</span> <span class="cb-out">−${HAIR.brl(r.out)}</span>`
+        : r.in ? `<span class="cb-in">${HAIR.brl(r.in)}</span>`
+               : `<span class="cb-out">${HAIR.brl(r.out)}</span>`;
+      return `<div class="cb-row">
+        <div class="cb-top"><span class="cb-name">${HAIR.catIcone(r.id)} ${HAIR.catNome(r.id)}</span><span class="cb-val">${detalhe}</span></div>
+        <div class="cb-track"><div class="cb-fill" style="width:${pct}%;background:${cor}"></div></div>
+      </div>`;
+    }).join("");
   }
 
   /* ===================== LISTA DE TRANSAÇÕES ===================== */
@@ -379,7 +464,7 @@
     $("#lanc-submit").textContent = "Salvar alterações";
     $("#f-id").value = l.id;
     setTipo(l.tipo);
-    $("#f-valor").value = String(l.valor).replace(".", ",");
+    $("#f-valor").value = HAIR.formatValorInput(l.valor);
     if (l.data_movimento) {
       const d = new Date(l.data_movimento); d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
       $("#f-data").value = d.toISOString().slice(0, 16);
@@ -514,7 +599,7 @@
   function applyVoiceToForm() {
     const p = state.voiceParsed; if (!p) return;
     if (p.tipo) setTipo(p.tipo);
-    if (p.valor) $("#f-valor").value = String(p.valor).replace(".", ",");
+    if (p.valor) $("#f-valor").value = HAIR.formatValorInput(p.valor);
     if (p.conta) $("#f-conta").value = p.conta;
     if (p.categoria) $("#f-categoria").value = p.categoria;
     if (p.descricao) $("#f-descricao").value = p.descricao;
@@ -609,6 +694,9 @@
     $("#tipo-entrada").addEventListener("click", () => setTipo("entrada"));
     $("#tipo-saida").addEventListener("click", () => setTipo("saida"));
 
+    // máscara de valor (centavos)
+    $("#f-valor").addEventListener("input", (e) => { e.target.value = HAIR.maskCentavos(e.target.value); });
+
     // upload
     $("#f-file-cam").addEventListener("change", (e) => onFilePicked(e.target));
     $("#f-file-lib").addEventListener("change", (e) => onFilePicked(e.target));
@@ -632,9 +720,17 @@
     bindFilter("#filt-responsavel", "responsavel");
     bindFilter("#filt-start", "start");
     bindFilter("#filt-end", "end");
+    // busca
+    let searchT;
+    $("#extrato-search").addEventListener("input", (e) => {
+      clearTimeout(searchT);
+      const v = e.target.value;
+      searchT = setTimeout(() => { state.filters.q = v; renderExtrato(); }, 200);
+    });
+
     $("#filt-clear").addEventListener("click", () => {
-      state.filters = { conta: "", tipo: "", categoria: "", responsavel: "", start: "", end: "" };
-      ["#filt-conta", "#filt-tipo", "#filt-categoria", "#filt-responsavel", "#filt-start", "#filt-end"].forEach(s => $(s).value = "");
+      state.filters = { conta: "", tipo: "", categoria: "", responsavel: "", start: "", end: "", q: "" };
+      syncFilterInputs();
       renderExtrato();
     });
 

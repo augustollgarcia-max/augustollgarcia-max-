@@ -52,6 +52,7 @@
 
   <!-- ============ APP (área logada) ============ -->
   <div id="app-shell" hidden>
+    <div id="offline-banner" class="offline-banner" hidden>📴 Você está offline — as alterações podem não ser salvas até reconectar.</div>
     <div id="demo-banner" class="demo-banner" hidden>
       <strong>Modo demonstração</strong> — dados de exemplo neste aparelho.
       <button type="button" id="demo-config" class="banner-link">Conectar Supabase</button>
@@ -64,7 +65,10 @@
           <p class="hello" id="hello-user">Olá 👋</p>
           <h1 class="screen-title">Painel</h1>
         </div>
-        <button type="button" class="icon-btn" id="btn-logout" title="Sair" aria-label="Sair">⎋</button>
+        <div class="header-actions">
+          <button type="button" class="icon-btn" id="btn-install" title="Instalar app" aria-label="Instalar app" hidden>⤓</button>
+          <button type="button" class="icon-btn" id="btn-logout" title="Sair" aria-label="Sair">⎋</button>
+        </div>
       </header>
 
       <div class="period-tabs" id="period-tabs" role="tablist">
@@ -206,6 +210,11 @@
         <button type="button" class="icon-btn" id="btn-toggle-filters" aria-label="Filtros">⚙</button>
       </header>
 
+      <div class="search-bar">
+        <span class="search-ico">🔎</span>
+        <input type="search" id="extrato-search" placeholder="Buscar por descrição ou responsável" />
+      </div>
+
       <div id="extrato-filters" class="extrato-filters" hidden>
         <label class="field field-sm"><span>Conta</span><select id="filt-conta"></select></label>
         <label class="field field-sm"><span>Tipo</span><select id="filt-tipo"></select></label>
@@ -217,6 +226,10 @@
       </div>
 
       <div class="extrato-summary" id="extrato-summary"></div>
+      <details class="cat-breakdown" id="cat-breakdown">
+        <summary>📊 Resumo por categoria</summary>
+        <div id="cat-breakdown-body"></div>
+      </details>
       <ul class="tx-list" id="extrato-tx-list"></ul>
     </section>
 
