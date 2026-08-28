@@ -58,13 +58,16 @@
   };
   Store.signOut = async function () {
     if (Store.mode === "supabase" && Store.sb) await Store.sb.auth.signOut();
+    localStorage.removeItem("hair_demo_session");
     Store.user = null;
   };
   Store.enterDemo = function () {
     Store.mode = "demo";
     Store.user = { email: "demonstracao@hair", id: "demo" };
+    localStorage.setItem("hair_demo_session", "1");
     Store.seedDemo();
   };
+  Store.hasDemoSession = () => localStorage.getItem("hair_demo_session") === "1";
   Store.currentUserLabel = function () {
     if (!Store.user) return "";
     return Store.user.email || "Usuário";

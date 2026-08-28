@@ -20,8 +20,10 @@
     await Store.init();
     populateSelects();
     bindGlobal();
+    Pin.init({ onLogout: doLogout });
     if (Store.mode === "supabase" && !Store.user) showLogin();
-    else if (Store.mode === "supabase" && Store.user) startApp();
+    else if (Store.mode === "supabase" && Store.user) Pin.gate(startApp);  // sessão restaurada → pede PIN
+    else if (Store.hasDemoSession()) Pin.gate(() => { Store.enterDemo(); startApp(); }); // demo persistida
     else showLogin();
 
     if ("serviceWorker" in navigator) {
@@ -59,6 +61,55 @@
     window.addEventListener("online", upd);
     window.addEventListener("offline", upd);
     upd();
+  }
+
+  async function doLogout() { await Store.signOut(); location.reload(); }
+
+  /* ---------- Configuração de PIN ---------- */
+  function openPinSettings() {
+    const lead = $("#pin-cfg-lead");
+    const box = $("#pin-cfg-actions");
+    box.innerHTML = "";
+    const addBtn = (label, cls, fn) => {
+      const b = document.createElement("button");
+      b.className = "btn " + cls + " btn-block"; b.textContent = label; b.style.marginBottom = "8px";
+      b.onclick = fn; box.appendChild(b);
+    };
+    if (!Pin.enabled()) {
+      lead.textContent = "Proteja o app com um código de 4 dígitos ao abrir.";
+      addBtn("Criar PIN", "btn-primary", async () => {
+        closeModal("#modal-pin");
+        const ok = await Pin.createFlow();
+        if (ok) { toast("PIN ativado. 🔒", "ok"); await maybeOfferBio(); }
+      });
+    } else {
+      lead.textContent = "A trava por PIN está ativa.";
+      addBtn("Alterar PIN", "btn-ghost", async () => {
+        closeModal("#modal-pin");
+        const ok = await Pin.createFlow();
+        if (ok) toast("PIN alterado.", "ok");
+      });
+      if (Pin.bioEnabled()) {
+        addBtn("Desativar biometria", "btn-ghost", () => { localStorage.removeItem("hair_pin_bio"); toast("Biometria desativada."); openPinSettings(); });
+      } else {
+        addBtn("Ativar biometria", "btn-ghost", async () => { closeModal("#modal-pin"); await maybeOfferBio(true); });
+      }
+      addBtn("Desativar PIN", "btn-danger", () => {
+        askConfirm("Desativar a trava?", "O app deixará de pedir PIN ao abrir.", () => {
+          Pin.clear(); closeModal("#modal-confirm"); closeModal("#modal-pin"); toast("Trava desativada.");
+        });
+      });
+    }
+    openModal("#modal-pin");
+  }
+
+  async function maybeOfferBio(force) {
+    if (!(await Pin.bioSupported())) { if (force) toast("Este aparelho não oferece biometria.", "err"); return; }
+    askConfirm("Ativar biometria?", "Desbloquear com digital/rosto além do PIN.", async () => {
+      closeModal("#modal-confirm");
+      try { await Pin.bioRegister(); toast("Biometria ativada. ☝︎", "ok"); }
+      catch (e) { toast("Não foi possível ativar a biometria.", "err"); }
+    });
   }
 
   function showLogin() {
@@ -667,6 +718,8 @@
       } finally { btn.disabled = false; btn.textContent = "Entrar"; }
     });
     $("#btn-demo").addEventListener("click", () => { Store.enterDemo(); startApp(); });
+    $("#btn-lock").addEventListener("click", openPinSettings);
+    $("#pin-cfg-fechar").addEventListener("click", () => closeModal("#modal-pin"));
     $("#btn-logout").addEventListener("click", () => {
       askConfirm("Sair da conta?", "Você voltará para a tela de login.", async () => {
         closeModal("#modal-confirm");

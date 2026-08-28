@@ -13,6 +13,7 @@ da HAIR Academia da Beleza de forma simples, visual e segura — direto do celul
 - ⌨️ **Máscara de valor** automática (digita 60000 → R$ 600,00)
 - 👆 Toque num **card de conta** para ver o extrato dela; toque na **miniatura** do comprovante para abrir em tela cheia
 - 📴 Aviso de **offline** e botão de **instalar** o app
+- 🔒 **Trava por PIN** de 4 dígitos ao abrir (com biometria quando o aparelho permitir)
 
 ---
 

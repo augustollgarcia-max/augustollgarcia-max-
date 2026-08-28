@@ -434,3 +434,32 @@ input,select,textarea{font-family:inherit;font-size:16px;}
 .cb-in{color:var(--green-deep);} .cb-out{color:var(--red-deep);}
 .cb-track{height:8px;border-radius:6px;background:var(--surface-2);overflow:hidden;}
 .cb-fill{height:100%;border-radius:6px;transition:width .5s cubic-bezier(.2,.7,.3,1);min-width:6px;}
+
+/* ===========================================================
+   TRAVA POR PIN
+   =========================================================== */
+.pin-lock{
+  position:fixed;inset:0;z-index:100;
+  background:radial-gradient(120% 120% at 50% 0%, var(--navy-700) 0%, var(--navy-900) 70%);
+  color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:24px calc(24px + var(--safe-bottom));gap:6px;
+}
+.pin-brand{font-family:var(--serif);font-weight:800;letter-spacing:.28em;font-size:30px;color:var(--gold-light);padding-left:.28em;margin-bottom:8px;}
+.pin-title{font-size:19px;font-weight:700;}
+.pin-sub{font-size:13px;color:rgba(255,255,255,.7);margin-bottom:6px;}
+.pin-dots{display:flex;gap:16px;margin:14px 0 6px;}
+.pin-dot{width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,.5);transition:all .15s;}
+.pin-dot.on{background:var(--gold);border-color:var(--gold);transform:scale(1.05);}
+.pin-dots.shake{animation:pinShake .4s;}
+@keyframes pinShake{0%,100%{transform:translateX(0);}20%,60%{transform:translateX(-9px);}40%,80%{transform:translateX(9px);}}
+.pin-error{min-height:20px;font-size:13px;color:#FFC7C0;font-weight:600;}
+.pin-pad{display:grid;grid-template-columns:repeat(3,76px);gap:16px;margin-top:8px;}
+.pin-key{
+  width:76px;height:76px;border-radius:50%;font-size:28px;font-weight:600;
+  background:rgba(255,255,255,.10);color:#fff;display:flex;align-items:center;justify-content:center;
+  transition:transform .08s, background .15s;backdrop-filter:blur(2px);
+}
+.pin-key:active{transform:scale(.9);background:rgba(255,255,255,.22);}
+.pin-key-fn{background:transparent;font-size:26px;}
+.pin-logout{margin-top:22px;color:rgba(255,255,255,.75);font-weight:600;font-size:14px;text-decoration:underline;}
+.pin-cfg-actions{display:flex;flex-direction:column;margin:8px 0;}
