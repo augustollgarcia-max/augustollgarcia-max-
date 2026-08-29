@@ -3,10 +3,15 @@
 Memória do projeto para o Claude Code. Ler antes de qualquer tarefa de publicação.
 
 ## Publicação / Deploy (IMPORTANTE)
-- Publicar este app **SOMENTE pelo GitHub Pages** (branch `main`, pasta raiz `/`).
-- **NÃO usar Netlify.** **NÃO usar Vercel.** (Decisão do usuário — 2026.)
+- Este repositório é **apenas o app financeiro** (novo). Publicar **SOMENTE pelo GitHub Pages** (branch `main`, pasta raiz `/`).
+- **NÃO usar Netlify.** **NÃO usar Vercel** para este app. (Decisão do usuário — 2026.)
 - URL do app: https://augustollgarcia-max.github.io/augustollgarcia-max-/
 - Como ativar (uma vez): repositório → Settings → Pages → Source: “Deploy from a branch” → Branch `main` /(root) → Save.
+
+## NÃO TOCAR — site da escola (separado)
+- O **site da escola/curso** (HAIR) é OUTRO projeto, fica hospedado no **Vercel** e está **funcionando corretamente**.
+- **Nunca** mexer, republicar ou alterar o site da escola nem o projeto dele no Vercel.
+- A regra “não usar Vercel” acima vale só para o app financeiro; ela **não** significa remover ou tocar no site da escola que já está no Vercel.
 
 ## Sobre o app
 - PWA mobile-first de controle financeiro (entradas/saídas) da HAIR Academia da Beleza.
