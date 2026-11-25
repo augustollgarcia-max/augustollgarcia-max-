@@ -1,3 +1,5 @@
+@./AGENTS.md
+
 ## ⚠️ REGRA PERMANENTE — COMANDO NÃO EXECUTADO = AVISO NA HORA (Augusto, 11/11/2026)
 
 **Prioridade máxima. Vale para todo chat, todo projeto, toda sessão e todo agente (Claude, Claude Code, Codex, GPT) nos 19 repositórios do Augusto.**
