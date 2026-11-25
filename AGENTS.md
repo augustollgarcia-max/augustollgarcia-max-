@@ -8,6 +8,8 @@
 - Trabalhe em uma branch dedicada e entregue por pull request. Vincule a issue na descrição com `Closes #N` quando o PR a resolver por completo ou `Refs #N` em entregas parciais.
 - No PR, informe o que mudou, como foi validado e o que está pendente. Siga as verificações, aprovações e o processo de publicação do projeto. Distinga PR aberto, merge, prévia e produção verificada.
 
+- Após revisar o diff da versão atual do PR e confirmar que os testes pertinentes e as verificações obrigatórias passaram, o agente deve fazer o merge sem pedir nova aprovação de rotina. Respeite revisões obrigatórias, proteções da branch e instruções explícitas de aguardar. Se houver falha, conflito ou risco concreto de regressão, resolva o que estiver no escopo e registre o bloqueio restante. Após o merge, acompanhe o fluxo de publicação previsto e informe separadamente o commit integrado e o estado do deploy.
+
 ## Interface e carregamento
 
 - Ao alterar uma interface, cubra os estados aplicáveis de carregamento, conteúdo, vazio, sucesso e erro. Use skeleton quando o formato do conteúdo for previsível e reserve espaço para evitar saltos na tela.
